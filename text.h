@@ -8,7 +8,7 @@
 #pragma once
 #include <vector>
 #include <string>
-#include "Line.h"
+#include "line.h"
 
 class Text {
 private:
