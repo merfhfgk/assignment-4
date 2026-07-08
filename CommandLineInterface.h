@@ -27,7 +27,6 @@ private:
         std::cout << "6. Encrypt and save to file" << std::endl;
         std::cout << "7. Decrype and load from file" << std::endl;
         std::cout << "0. Exit" << std::endl;
-        std::cout << "Choose: ";
     }
 
     void clearInputBuffer() const {
@@ -36,6 +35,8 @@ private:
             continue;
         }
     }
+    
+    
 
 public:
     CommandLineInterface() {
@@ -45,9 +46,10 @@ public:
     void start() {
         int choice;
         bool running = true;
-
+        printMenu();
         while (running) {
-            printMenu();
+            std::cout << "\nChoose: "; 
+
             if (!(std::cin >> choice)) {
                 clearInputBuffer();
                 std::cout << "Unknown command, please enter a number" << std::endl;
@@ -94,7 +96,7 @@ public:
                     break;
                 }
                 case 4: {
-                    std::cout << "\nThis document" << std::endl;
+                    std::cout << "\nTab " << tabManager.getActiveTab() << std::endl;
                     currentText->printText();
                     break;
                 }

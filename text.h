@@ -66,7 +66,7 @@ public:
             activeTabIndex = index;
             std::cout << "Switched to Tab " << (index + 1) << std::endl;
         } else {
-            std::cout << "Invalid tab index!" << std::endl;
+            std::cout << "Invalid tab index" << std::endl;
         }
     }
 
