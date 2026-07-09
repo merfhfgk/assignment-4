@@ -8,6 +8,7 @@
 #pragma once
 #include <vector>
 #include <string>
+#include <iostream>
 #include "line.h"
 
 class Text {
@@ -21,10 +22,11 @@ public:
 
     void printText() const {
         for (size_t i = 0; i < lines.size(); ++i) {
+            std::cout << i + 1 << ". ";
             lines[i]->print();
         }
     }
-
+    
     std::string serializeAll() const {
         std::string result = "";
         for (size_t i = 0; i < lines.size(); ++i) {
@@ -38,6 +40,28 @@ public:
             delete lines[i];
         }
         lines.clear();
+    }
+    
+    
+    bool toggleLineStatus(int index) {
+        if (index >= 0 && index < lines.size()) {
+            return lines[index]->toggleStatus();
+        }
+        return false;
+    }
+
+    bool editLineInsert(int index, int pos, const std::string& str) {
+        if (index >= 0 && index < lines.size()) {
+            return lines[index]->insertText(pos, str);
+        }
+        return false;
+    }
+
+    bool editLineDelete(int index, int pos, int count) {
+        if (index >= 0 && index < lines.size()) {
+            return lines[index]->deleteText(pos, count);
+        }
+        return false;
     }
 
     ~Text() {
@@ -55,10 +79,14 @@ public:
     TabManager() {
         activeTabIndex = -1;
     }
+    
+    int getActiveTabIndex() const {
+        return activeTabIndex;
+    }
 
     void createNewTab() {
         tabs.push_back(new Text());
-        activeTabIndex = tabs.size() - 1;
+        activeTabIndex = (int)tabs.size() - 1;
     }
 
     void switchTab(int index) {

@@ -18,7 +18,7 @@ private:
     TabManager tabManager;
 
     void printMenu() const {
-        std::cout << "\n=== TEXT EDITOR MENU ===" << std::endl;
+        std::cout << "\nMenu:" << std::endl;
         std::cout << "1. Add text" << std::endl;
         std::cout << "2. Add to checklist" << std::endl;
         std::cout << "3. Add contact" << std::endl;
@@ -26,6 +26,8 @@ private:
         std::cout << "5. Create/switch between tabs" << std::endl;
         std::cout << "6. Encrypt and save to file" << std::endl;
         std::cout << "7. Decrype and load from file" << std::endl;
+        std::cout << "8. Change status of punkts in checklist" << std::endl;
+        std::cout << "9. Change text (insert/delete)" << std::endl;
         std::cout << "0. Exit" << std::endl;
     }
 
@@ -96,7 +98,7 @@ public:
                     break;
                 }
                 case 4: {
-                    std::cout << "\nTab " << tabManager.getActiveTab() << std::endl;
+                    std::cout << "\nTab " << (tabManager.getActiveTabIndex() + 1) << std::endl;
                     currentText->printText();
                     break;
                 }
@@ -118,41 +120,67 @@ public:
                 }
                 case 6: {
                     std::string filename, key;
-                    std::cout << "Enter the name of file: ";
+                    int algoChoice;
+                                        
+                    std::cout << "choose algorithm (1 - ceaser, 2 - vigenere): ";
+                    if (!(std::cin >> algoChoice)) {
+                        clearInputBuffer();
+                        std::cout << "unknown input\n";
+                        break;
+                    }
+                    clearInputBuffer();
+                    CipherAlgorithm algo = (algoChoice == 1) ? CAESAR : VIGENERE;
+                    std::cout << "Enter file name: ";
                     std::getline(std::cin, filename);
-                    std::cout << "key (for cipher): ";
+                                        
+                    if (algo == CAESAR) {
+                        std::cout << "Key: ";
+                    } else {
+                        std::cout << "Key: ";
+                    }
                     std::getline(std::cin, key);
-
                     std::string serializedData = currentText->serializeAll();
-                    
+                                        
                     Cipher cipher("./libcipher.dylib");
-                    std::string encryptedData = cipher.encrypt(serializedData, key);
+                    std::string encryptedData = cipher.encrypt(serializedData, key, algo);
 
                     if (encryptedData.empty()) {
-                        std::cout << "Unexpected error with ciphering" << std::endl;
-                        break;
+                    std::cout << "Cipher error" << std::endl;
+                    break;
                     }
 
                     std::ofstream outFile(filename, std::ios::binary);
                     if (outFile.is_open()) {
                         outFile << encryptedData;
                         outFile.close();
-                        std::cout << "File was successfully ciphered and saved " << filename << "!" << std::endl;
+                        std::cout << "File " << filename << "was ciphered and saved successfully" << std::endl;
                     } else {
-                        std::cout << "Error with opening file" << std::endl;
+                        std::cout << "Error with file oppening" << std::endl;
                     }
-                    break;
+                      break;
                 }
                 case 7: {
                     std::string filename, key;
-                    std::cout << "Enter the name of file: ";
+                    int algoChoice;
+                    
+                    std::cout << "what algorothm was used (1 - ceaser, 2 - vigenere): ";
+                    if (!(std::cin >> algoChoice)) {
+                        clearInputBuffer();
+                        std::cout << "Unknown input.\n";
+                        break;
+                    }
+                    clearInputBuffer();
+                    
+                    CipherAlgorithm algo = (algoChoice == 1) ? CAESAR : VIGENERE;
+
+                    std::cout << "Enter file name: ";
                     std::getline(std::cin, filename);
-                    std::cout << "key (for cipher): ";
+                    std::cout << "key: ";
                     std::getline(std::cin, key);
 
                     std::ifstream inFile(filename, std::ios::binary);
                     if (!inFile.is_open()) {
-                        std::cout << "Error with opening file" << std::endl;
+                        std::cout << "Error with file oppening" << std::endl;
                         break;
                     }
                     
@@ -160,15 +188,14 @@ public:
                     inFile.close();
 
                     Cipher cipher("./libcipher.dylib");
-                    std::string decryptedData = cipher.decrypt(fileContent, key);
+                    std::string decryptedData = cipher.decrypt(fileContent, key, algo);
 
                     if (decryptedData.empty()) {
-                        std::cout << "Could not descrypt or open file" << std::endl;
+                        std::cout << "\nerror wih decryptind/empty file" << std::endl;
                         break;
                     }
 
                     currentText->clear();
-                    
                     std::stringstream ss(decryptedData);
                     std::string lineData;
                     
@@ -192,7 +219,83 @@ public:
                         }
                     }
 
-                    std::cout << "Success!" << std::endl;
+                    std::cout << "FIle was decrypted and loaded successfully" << std::endl;
+                    break;
+                }
+                    
+                case 8: {
+                    std::cout << "choose punkt to change status" << std::endl;
+                    currentText->printText();
+                    std::cout << "number of the punkt: ";
+                    
+                    int lineIndex;
+                    if (std::cin >> lineIndex) {
+                        clearInputBuffer();
+                        if (currentText->toggleLineStatus(lineIndex - 1)) {
+                            std::cout << "Status was changed" << std::endl;
+                        } else {
+                            std::cout << "Error: wrong index" << std::endl;
+                        }
+                    } else {
+                        clearInputBuffer();
+                        std::cout << "Unknown input\n";
+                    }
+                    break;
+                }
+                    
+                case 9: {
+                    std::cout << "\nChoose line to change" << std::endl;
+                    currentText->printText();
+                    std::cout << "number of the line: ";
+                    
+                    int lineIndex;
+                    if (!(std::cin >> lineIndex)) {
+                        clearInputBuffer();
+                        std::cout << "unknown input.\n";
+                        break;
+                    }
+                    clearInputBuffer();
+
+                    std::cout << "1. insert\n2. delete\nChoose: ";
+                    int action;
+                    if (!(std::cin >> action)) {
+                        clearInputBuffer();
+                        std::cout << "Unknown input.\n";
+                        break;
+                    }
+                    clearInputBuffer();
+
+                    bool success = false;
+                    
+                    if (action == 1) {
+                        int pos;
+                        std::string str;
+                        std::cout << "index for insert: ";
+                        std::cin >> pos;
+                        clearInputBuffer();
+                        std::cout << "text for insert: ";
+                        std::getline(std::cin, str);
+                        success = currentText->editLineInsert(lineIndex - 1, pos, str);
+                        
+                    } else if (action == 2) {
+                        int pos, count;
+                        std::cout << "index for deleting: ";
+                        std::cin >> pos;
+                        std::cout << "amount of symbols to delete: ";
+                        std::cin >> count;
+                        clearInputBuffer();
+                        success = currentText->editLineDelete(lineIndex - 1, pos, count);
+                        
+                    } else {
+                        std::cout << "Unknown input\n";
+                        break;
+                    }
+
+                    if (success) {
+                        std::cout << "Text was saved\n";
+                    } else {
+                        std::cout << "You can't change this type.\n";
+                    }
                     break;
                 }
                 case 0:
