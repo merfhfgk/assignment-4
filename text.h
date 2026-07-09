@@ -34,6 +34,40 @@ public:
         }
         return result;
     }
+    
+    void deserializeAll(const std::string& fullData) {
+        clear();
+
+        std::stringstream ss(fullData);
+        std::string lineData;
+
+        while (std::getline(ss, lineData)) {
+            if (!lineData.empty() && lineData.back() == '\r') {
+                lineData.pop_back();
+            }
+
+            if (lineData.empty()) {
+                continue;
+            }
+
+            Line* newLine = nullptr;
+
+            if (lineData.find("Text: ") == 0) {
+                newLine = new TextLine();
+            }
+            else if (lineData.find("Contact - ") == 0) {
+                newLine = new ContactLine();
+            }
+            else if (lineData.find("[ x ] ") == 0 || lineData.find("[   ] ") == 0) {
+                newLine = new ChecklistLine();
+            }
+
+            if (newLine != nullptr) {
+                newLine->deserialize(lineData);
+                lines.push_back(newLine);
+            }
+        }
+    }
 
     void clear() {
         for (size_t i = 0; i < lines.size(); ++i) {

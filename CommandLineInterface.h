@@ -184,42 +184,23 @@ public:
                         break;
                     }
                     
-                    std::string fileContent((std::istreambuf_iterator<char>(inFile)), std::istreambuf_iterator<char>());
+                    std::string encryptedContent((std::istreambuf_iterator<char>(inFile)), std::istreambuf_iterator<char>());
                     inFile.close();
 
                     Cipher cipher("./libcipher.dylib");
-                    std::string decryptedData = cipher.decrypt(fileContent, key, algo);
+                    std::string decryptedData = cipher.decrypt(encryptedContent, key, algo);
 
                     if (decryptedData.empty()) {
-                        std::cout << "\nerror wih decryptind/empty file" << std::endl;
+                        std::cout << "Cipher error (wrong key or corrupted file)" << std::endl;
                         break;
                     }
-
-                    currentText->clear();
-                    std::stringstream ss(decryptedData);
-                    std::string lineData;
                     
-                    while (std::getline(ss, lineData)) {
-                        if (lineData.empty()) continue;
-
-                        if (lineData.rfind("TEXT|", 0) == 0) {
-                            TextLine* tl = new TextLine();
-                            tl->deserialize(lineData);
-                            currentText->addLine(tl);
-                        }
-                        else if (lineData.rfind("CHECKLIST|", 0) == 0) {
-                            ChecklistLine* cl = new ChecklistLine();
-                            cl->deserialize(lineData);
-                            currentText->addLine(cl);
-                        }
-                        else if (lineData.rfind("CONTACT|", 0) == 0) {
-                            ContactLine* conl = new ContactLine();
-                            conl->deserialize(lineData);
-                            currentText->addLine(conl);
-                        }
+                    if (tabManager.getActiveTab() != nullptr) {
+                        tabManager.getActiveTab()->deserializeAll(decryptedData);
+                        std::cout << "File was decrypted and loaded successfully\n";
+                    } else {
+                        std::cout << "Error: No active tab to load data into!\n";
                     }
-
-                    std::cout << "FIle was decrypted and loaded successfully" << std::endl;
                     break;
                 }
                     
